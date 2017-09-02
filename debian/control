@@ -1,0 +1,23 @@
+Source: libdisplaycore-driver-vga2
+Section: libraries
+Priority: extra
+Maintainer: Matt Jenkins <matt@majenko.co.uk>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+
+Package: libdisplaycore-driver-vga2
+Section: libraries
+Architecture: all
+XBSC-Group: DisplayCore
+XBSC-Subgroup: Drivers
+Depends: libdisplaycore-core
+Provides: VGA2.h
+Description: VGA2 library
+ Experimental colour VGA driver.
+ --------------------------
+ .
+ This driver uses three (yes, three) SPI ports to generate a DMA driven stream of RGB
+ data (one SPI port per colour). Currently it is hard coded to use SPI ports 2, 3 and 4.
+
+
+
