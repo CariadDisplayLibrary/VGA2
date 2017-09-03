@@ -176,7 +176,7 @@ void VGA2::initializeDevice() {
     DCH2INTbits.CHSDIE = 0;
 
     setIntVector(_DMA_0_VECTOR, vgaProcess);
-    setIntPriority(_DMA_0_VECTOR, 6, 0);
+    setIntPriority(_DMA_0_VECTOR, 7, 3);
     clearIntFlag(_DMA0_IRQ);
     setIntEnable(_DMA0_IRQ);
 
@@ -203,14 +203,14 @@ void VGA2::initializeDevice() {
     T5CONbits.TCKPS = 0;
     PR5=0xFFFF;
     setIntVector(_TIMER_5_VECTOR, horizPulse);
-    setIntPriority(_TIMER_5_VECTOR, 6, 0);
+    setIntPriority(_TIMER_5_VECTOR, 7, 3);
     clearIntFlag(_TIMER_5_IRQ);
     setIntEnable(_TIMER_5_IRQ);
 
     // Unfortunately the core timer really plays havoc with the VGA timing.
     // So we have to disable it. That means no millis() and no delay().
     // Makes things a little more interesting...
-    clearIntEnable(_CORE_TIMER_IRQ);
+//    clearIntEnable(_CORE_TIMER_IRQ);
 }
 
 VGA2::VGA2(uint8_t hsync, uint8_t vsync) {
