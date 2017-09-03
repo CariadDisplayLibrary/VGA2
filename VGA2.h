@@ -42,19 +42,21 @@ class VGA2 : public DisplayCore {
 
         static const uint32_t vgaVert[];
 
-        volatile uint8_t _buffer0[(vgaHTOT/8) * (vgaVTOT >> 1)] __attribute__((aligned(4)));
-        volatile uint8_t _buffer1[(vgaHTOT/8) * (vgaVTOT >> 1)] __attribute__((aligned(4)));
-        volatile uint8_t _buffer2[(vgaHTOT/8) * (vgaVTOT >> 1)] __attribute__((aligned(4)));
+        volatile uint8_t _bufferR0[(vgaHTOT/8) * (vgaVDP >> 1)] __attribute__((aligned(4)));
+        volatile uint8_t _bufferR1[(vgaHTOT/8) * (vgaVDP >> 1)] __attribute__((aligned(4)));
+        volatile uint8_t _bufferG0[(vgaHTOT/8) * (vgaVDP >> 1)] __attribute__((aligned(4)));
+        volatile uint8_t _bufferG1[(vgaHTOT/8) * (vgaVDP >> 1)] __attribute__((aligned(4)));
+        volatile uint8_t _bufferB0[(vgaHTOT/8) * (vgaVDP >> 1)] __attribute__((aligned(4)));
+        volatile uint8_t _bufferB1[(vgaHTOT/8) * (vgaVDP >> 1)] __attribute__((aligned(4)));
 
-        volatile uint8_t *activeBuffer;
-
-        uint32_t bufferNumber;
+        volatile uint8_t *_activeBufferR;
+        volatile uint8_t *_activeBufferG;
+        volatile uint8_t *_activeBufferB;
 
         p32_ioport *_hsync_port;
         p32_ioport *_vsync_port;
         uint32_t _hsync_pin;
         uint32_t _vsync_pin;
-
     
     public:
         VGA2(uint8_t hsync, uint8_t vsync);

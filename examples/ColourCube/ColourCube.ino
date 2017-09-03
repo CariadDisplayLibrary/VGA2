@@ -18,14 +18,14 @@ unsigned char frame = 0;
 unsigned long timer = 0;
 
 float cube3d[8][3] = {
-	{xOff - cSize,yOff + cSize,zOff - cSize	},
-	{xOff + cSize,yOff + cSize,zOff - cSize	},
-	{xOff - cSize,yOff - cSize,zOff - cSize	},
-	{xOff + cSize,yOff - cSize,zOff - cSize	},
-	{xOff - cSize,yOff + cSize,zOff + cSize	},
-	{xOff + cSize,yOff + cSize,zOff + cSize	},
-	{xOff - cSize,yOff - cSize,zOff + cSize	},
-	{xOff + cSize,yOff - cSize,zOff + cSize	}
+	{(float)(xOff - cSize), (float)(yOff + cSize), (float)(zOff - cSize)},
+	{(float)(xOff + cSize), (float)(yOff + cSize), (float)(zOff - cSize)},
+	{(float)(xOff - cSize), (float)(yOff - cSize), (float)(zOff - cSize)},
+	{(float)(xOff + cSize), (float)(yOff - cSize), (float)(zOff - cSize)},
+	{(float)(xOff - cSize), (float)(yOff + cSize), (float)(zOff + cSize)},
+	{(float)(xOff + cSize), (float)(yOff + cSize), (float)(zOff + cSize)},
+	{(float)(xOff - cSize), (float)(yOff - cSize), (float)(zOff + cSize)},
+	{(float)(xOff + cSize), (float)(yOff - cSize), (float)(zOff + cSize)}
 };
 unsigned int cube2d[8][2];
 
@@ -40,14 +40,11 @@ void setup() {
 }
 
 void loop() {
-    tft.vblank();
 	xrotate(angleX);
-    tft.vblank();
 	yrotate(angleY);
-    tft.vblank();
 	zrotate(angleZ);
-    tft.vblank();
 	printcube();
+    tft.flip();
 	angleX = 0.01;//double(analogRead(0))/1024-0.5;
 	angleY = 0.02;//double(analogRead(1))/1024-0.5;
 	angleZ = 0.005;//double(analogRead(2))/1024-0.5;
@@ -59,7 +56,7 @@ void printcube() {
 		cube2d[i][1] = (unsigned int)((cube3d[i][1] * view_plane / cube3d[i][2]) + (vpos));
 	}
 
-    erase_cube(oldCube2d);
+    tft.fillScreen(Color::Black);
     draw_cube(cube2d);
 
 	for (byte i = 0; i < 8; i++) {
@@ -108,23 +105,23 @@ void xrotate(float q) {
 }
 
 void draw_cube(unsigned int c2d[8][2]) {
-	tft.drawLine(c2d[0][0],c2d[0][1],c2d[1][0],c2d[1][1], Color::Red);
-	tft.drawLine(c2d[0][0],c2d[0][1],c2d[2][0],c2d[2][1], Color::Green);
-	tft.drawLine(c2d[0][0],c2d[0][1],c2d[4][0],c2d[4][1], Color::Blue);
-	tft.drawLine(c2d[1][0],c2d[1][1],c2d[5][0],c2d[5][1], Color::Yellow);
-	tft.drawLine(c2d[1][0],c2d[1][1],c2d[3][0],c2d[3][1], Color::Cyan);
-	tft.drawLine(c2d[2][0],c2d[2][1],c2d[6][0],c2d[6][1], Color::Magenta);
+	tft.drawLine(c2d[0][0],c2d[0][1],c2d[1][0],c2d[1][1], Color::White);
+	tft.drawLine(c2d[0][0],c2d[0][1],c2d[2][0],c2d[2][1], Color::White);
+	tft.drawLine(c2d[0][0],c2d[0][1],c2d[4][0],c2d[4][1], Color::White);
+	tft.drawLine(c2d[1][0],c2d[1][1],c2d[5][0],c2d[5][1], Color::White);
+	tft.drawLine(c2d[1][0],c2d[1][1],c2d[3][0],c2d[3][1], Color::White);
+	tft.drawLine(c2d[2][0],c2d[2][1],c2d[6][0],c2d[6][1], Color::White);
 	tft.drawLine(c2d[2][0],c2d[2][1],c2d[3][0],c2d[3][1], Color::White);
-	tft.drawLine(c2d[4][0],c2d[4][1],c2d[6][0],c2d[6][1], Color::Red);
-	tft.drawLine(c2d[4][0],c2d[4][1],c2d[5][0],c2d[5][1], Color::Green);
-	tft.drawLine(c2d[7][0],c2d[7][1],c2d[6][0],c2d[6][1], Color::Blue);
-	tft.drawLine(c2d[7][0],c2d[7][1],c2d[3][0],c2d[3][1], Color::Yellow);
-	tft.drawLine(c2d[7][0],c2d[7][1],c2d[5][0],c2d[5][1], Color::Cyan);
+	tft.drawLine(c2d[4][0],c2d[4][1],c2d[6][0],c2d[6][1], Color::White);
+	tft.drawLine(c2d[4][0],c2d[4][1],c2d[5][0],c2d[5][1], Color::White);
+	tft.drawLine(c2d[7][0],c2d[7][1],c2d[6][0],c2d[6][1], Color::White);
+	tft.drawLine(c2d[7][0],c2d[7][1],c2d[3][0],c2d[3][1], Color::White);
+	tft.drawLine(c2d[7][0],c2d[7][1],c2d[5][0],c2d[5][1], Color::White);
 
-	tft.drawLine(c2d[0][0],c2d[0][1],c2d[5][0],c2d[5][1], Color::Magenta);
-	tft.drawLine(c2d[1][0],c2d[1][1],c2d[4][0],c2d[4][1], Color::White);
-	tft.drawLine(c2d[2][0],c2d[2][1],c2d[7][0],c2d[7][1], Color::Red);
-	tft.drawLine(c2d[3][0],c2d[3][1],c2d[6][0],c2d[6][1], Color::Blue);
+	tft.drawLine(c2d[0][0],c2d[0][1],c2d[5][0],c2d[5][1], Color::Red);
+	tft.drawLine(c2d[1][0],c2d[1][1],c2d[4][0],c2d[4][1], Color::Green);
+	tft.drawLine(c2d[2][0],c2d[2][1],c2d[7][0],c2d[7][1], Color::Blue);
+	tft.drawLine(c2d[3][0],c2d[3][1],c2d[6][0],c2d[6][1], Color::Yellow);
 }
 
 void erase_cube(unsigned int c2d[8][2]) {

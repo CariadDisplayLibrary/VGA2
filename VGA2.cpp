@@ -16,9 +16,9 @@ uint32_t vsync_pin;
 
 static const uint8_t blank[100] = {0}; // A blank line
 
-static volatile uint8_t *vgaBuffer0;
-static volatile uint8_t *vgaBuffer1;
-static volatile uint8_t *vgaBuffer2;
+static volatile uint8_t *vgaBufferR;
+static volatile uint8_t *vgaBufferG;
+static volatile uint8_t *vgaBufferB;
 static volatile uint8_t pulsePhase = 0;
 
 static volatile uint32_t scanLine = 0;
@@ -66,9 +66,9 @@ void __USER_ISR vgaProcess() {
 
 
     if (scanLine == 0) _ramPos = 0;
-    DCH0SSA = ((uint32_t)&vgaBuffer0[_ramPos]) & 0x1FFFFFFF;
-    DCH1SSA = ((uint32_t)&vgaBuffer1[_ramPos]) & 0x1FFFFFFF;
-    DCH2SSA = ((uint32_t)&vgaBuffer2[_ramPos]) & 0x1FFFFFFF;
+    DCH0SSA = (scanLine < VGA2::vgaVDP) ? (((uint32_t)&vgaBufferR[_ramPos]) & 0x1FFFFFFF) : (((uint32_t)&blank[0]) & 0x1FFFFFFF);
+    DCH1SSA = (scanLine < VGA2::vgaVDP) ? (((uint32_t)&vgaBufferG[_ramPos]) & 0x1FFFFFFF) : (((uint32_t)&blank[0]) & 0x1FFFFFFF);
+    DCH2SSA = (scanLine < VGA2::vgaVDP) ? (((uint32_t)&vgaBufferB[_ramPos]) & 0x1FFFFFFF) : (((uint32_t)&blank[0]) & 0x1FFFFFFF);
 
     DCH0SSIZ = VGA2::vgaHTOT >> 3;
     DCH1SSIZ = VGA2::vgaHTOT >> 3;
@@ -101,12 +101,18 @@ void VGA2::initializeDevice() {
         return;
     }
 
-    memset((void *)_buffer0, 0, (vgaHTOT >> 3) * (vgaVTOT >> 1));
-    memset((void *)_buffer1, 0, (vgaHTOT >> 3) * (vgaVTOT >> 1));
-    memset((void *)_buffer2, 0, (vgaHTOT >> 3) * (vgaVTOT >> 1));
-    vgaBuffer0 = _buffer0;
-    vgaBuffer1 = _buffer1;
-    vgaBuffer2 = _buffer2;
+    memset((void *)_bufferR0, 0, (vgaHTOT >> 3) * (vgaVDP >> 1));
+    memset((void *)_bufferG0, 0, (vgaHTOT >> 3) * (vgaVDP >> 1));
+    memset((void *)_bufferB0, 0, (vgaHTOT >> 3) * (vgaVDP >> 1));
+    memset((void *)_bufferR1, 0, (vgaHTOT >> 3) * (vgaVDP >> 1));
+    memset((void *)_bufferG1, 0, (vgaHTOT >> 3) * (vgaVDP >> 1));
+    memset((void *)_bufferB1, 0, (vgaHTOT >> 3) * (vgaVDP >> 1));
+    vgaBufferR = _bufferR0;
+    vgaBufferG = _bufferG0;
+    vgaBufferB = _bufferB0;
+    _activeBufferR = _bufferR1;
+    _activeBufferG = _bufferG1;
+    _activeBufferB = _bufferB1;
 
     _hsync_port->tris.clr = _hsync_pin;
     _vsync_port->tris.clr = _vsync_pin;
@@ -136,33 +142,33 @@ void VGA2::initializeDevice() {
     SPI3CONbits.ON = 1;
 
     // And now a DMA channel for transferring the data
-    DCH0DSA = ((unsigned int)&SPI4BUF) & 0x1FFFFFFF;
+    DCH0DSA = ((unsigned int)&SPI2BUF) & 0x1FFFFFFF;
     DCH0DSIZ = 1;
     DCH0CSIZ = 1;
     DCH0ECONbits.SIRQEN = 1;
-    DCH0ECONbits.CHSIRQ = _SPI4_TX_IRQ;
+    DCH0ECONbits.CHSIRQ = _SPI2_TX_IRQ;
     DCH0CONbits.CHAEN = 0;
     DCH0CONbits.CHEN = 0;
     DCH0CONbits.CHPRI = 3;
     DCH0INTbits.CHSDIF = 0;
     DCH0INTbits.CHSDIE = 1;
 
-    DCH1DSA = ((unsigned int)&SPI2BUF) & 0x1FFFFFFF;
+    DCH1DSA = ((unsigned int)&SPI3BUF) & 0x1FFFFFFF;
     DCH1DSIZ = 1;
     DCH1CSIZ = 1;
     DCH1ECONbits.SIRQEN = 1;
-    DCH1ECONbits.CHSIRQ = _SPI2_TX_IRQ;
+    DCH1ECONbits.CHSIRQ = _SPI3_TX_IRQ;
     DCH1CONbits.CHAEN = 0;
     DCH1CONbits.CHEN = 0;
     DCH1CONbits.CHPRI = 3;
     DCH1INTbits.CHSDIF = 0;
     DCH1INTbits.CHSDIE = 0;
 
-    DCH2DSA = ((unsigned int)&SPI3BUF) & 0x1FFFFFFF;
+    DCH2DSA = ((unsigned int)&SPI4BUF) & 0x1FFFFFFF;
     DCH2DSIZ = 1;
     DCH2CSIZ = 1;
     DCH2ECONbits.SIRQEN = 1;
-    DCH2ECONbits.CHSIRQ = _SPI3_TX_IRQ;
+    DCH2ECONbits.CHSIRQ = _SPI4_TX_IRQ;
     DCH2CONbits.CHAEN = 0;
     DCH2CONbits.CHEN = 0;
     DCH2CONbits.CHPRI = 3;
@@ -211,9 +217,7 @@ VGA2::VGA2(uint8_t hsync, uint8_t vsync) {
     _unit = this;
     uint32_t port = 0;
 
-    _scanPhase = 0;
     scanLine = 0;
-    _ramPos = 0;
 
     _hsync_pin = 0;
     _vsync_pin = 0;
@@ -236,33 +240,33 @@ void VGA2::setPixel(int x, int y, color_t c) {
     if (x < 0 || y < 0 || x >= Width || y >= Height) {
         return;
     }
-    uint32_t poff = x/8 + y * (vgaHTOT/8);
-    uint8_t ppos = x % 8;
+    uint32_t poff = ((x-4) >> 3) + y * (vgaHTOT >> 3);
+    uint8_t ppos = (x-4) & 0x07;
     poff += 1;
     if (c & 0b0000000000000001) {
-        _buffer0[poff] |= (0x80>>ppos);
+        _activeBufferB[poff] |= (0x80>>ppos);
     } else {
-        _buffer0[poff] &= ~(0x80>>ppos);
+        _activeBufferB[poff] &= ~(0x80>>ppos);
     }
 
 
-    poff = (x-2)/8 + y * (vgaHTOT/8);
-    ppos = (x-2) % 8;
+    poff = ((x-2) >> 3) + y * (vgaHTOT >> 3);
+    ppos = (x-2) & 0x07;
     poff += 1;
     if (c & 0b0000000000100000) {
-        _buffer1[poff] |= (0x80>>ppos);
+        _activeBufferG[poff] |= (0x80>>ppos);
     } else {
-        _buffer1[poff] &= ~(0x80>>ppos);
+        _activeBufferG[poff] &= ~(0x80>>ppos);
     }
 
 
-    poff = (x-3)/8 + y * (vgaHTOT/8);
-    ppos = (x-3) % 8;
+    poff = ((x) >> 3) + y * (vgaHTOT/8);
+    ppos = (x) & 0x07;
     poff += 1;
     if (c & 0b0000100000000000) {
-        _buffer2[poff] |= (0x80>>ppos);
+        _activeBufferR[poff] |= (0x80>>ppos);
     } else {
-        _buffer2[poff] &= ~(0x80>>ppos);
+        _activeBufferR[poff] &= ~(0x80>>ppos);
     }
 }
 
@@ -271,31 +275,45 @@ void VGA2::vblank() {
 }
 
 void VGA2::flip() {
+    vblank();
+    if (_activeBufferR == _bufferR0) {
+        _activeBufferR = _bufferR1;
+        _activeBufferG = _bufferG1;
+        _activeBufferB = _bufferB1;
+        vgaBufferR = _bufferR0;
+        vgaBufferG = _bufferG0;
+        vgaBufferB = _bufferB0;
+    } else {
+        _activeBufferR = _bufferR0;
+        _activeBufferG = _bufferG0;
+        _activeBufferB = _bufferB0;
+        vgaBufferR = _bufferR1;
+        vgaBufferG = _bufferG1;
+        vgaBufferB = _bufferB1;
+    }
 }
 
 void VGA2::fillScreen(color_t c) {
     if (c & 0b0000000000000001) {
         for (int i = 0; i < (vgaVDP >> 1); i++) {
-            memset((void *)&_buffer0[(vgaHTOT >> 3) * i + 1], 255, vgaHDP>>3);
+            memset((void *)&_activeBufferB[(vgaHTOT >> 3) * i + 1], 255, vgaHDP>>3);
         }
     } else {
-        memset((void *)_buffer0, 0, (vgaHTOT >> 3) * (vgaVTOT >> 1));
+        memset((void *)_activeBufferB, 0, (vgaHTOT >> 3) * (vgaVDP >> 1));
     }
     if (c & 0b0000000000100000) {
         for (int i = 0; i < (vgaVDP >> 1); i++) {
-            memset((void *)&_buffer1[(vgaHTOT >> 3) * i + 1], 255, vgaHDP>>3);
+            memset((void *)&_activeBufferG[(vgaHTOT >> 3) * i + 1], 255, vgaHDP>>3);
         }
     } else {
-        memset((void *)_buffer1, 0, (vgaHTOT >> 3) * (vgaVTOT >> 1));
+        memset((void *)_activeBufferG, 0, (vgaHTOT >> 3) * (vgaVDP >> 1));
     }
     if (c & 0b0000100000000000) {
         for (int i = 0; i < (vgaVDP >> 1); i++) {
-            memset((void *)&_buffer2[(vgaHTOT >> 3) * i + 1], 255, vgaHDP>>3);
+            memset((void *)&_activeBufferR[(vgaHTOT >> 3) * i + 1], 255, vgaHDP>>3);
         }
     } else {
-        memset((void *)_buffer2, 0, (vgaHTOT >> 3) * (vgaVTOT >> 1));
+        memset((void *)_activeBufferR, 0, (vgaHTOT >> 3) * (vgaVDP >> 1));
     }
-
-
 }
 
