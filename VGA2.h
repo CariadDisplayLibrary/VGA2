@@ -80,6 +80,10 @@ class VGA2 : public DisplayCore {
         static void processInterrupt() { if (_unit) _unit->runInterrupt(); }
         void runInterrupt();
 
+        void disableCoreTimer() { clearIntEnable(_CORE_TIMER_IRQ); }
+        void enableCoreTimer() { setIntEnable(_CORE_TIMER_IRQ); }
+
+
 };
 
 #endif
