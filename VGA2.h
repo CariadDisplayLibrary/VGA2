@@ -63,7 +63,7 @@ class VGA2 : public DisplayCore {
         void setRotation(int __attribute__((unused)) r) {}
         void displayOn() {}
         void displayOff() {}
-        void invertDisplay(boolean __attribute__((unused)) i) {}
+        void invertDisplay(bool __attribute__((unused)) i) {}
 
         int getWidth() { return Width; }
         int getHeight() { return Height; }
