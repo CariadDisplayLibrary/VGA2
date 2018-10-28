@@ -12,7 +12,7 @@ XBSC-Group: DisplayCore
 XBSC-Subgroup: Drivers
 Depends: libdisplaycore-core
 Provides: VGA2.h
-Description: VGA2 library
+Description: VGA2
  Experimental colour VGA driver.
  --------------------------
  .
