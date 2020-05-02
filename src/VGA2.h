@@ -1,7 +1,7 @@
 #ifndef _VGA2_H
 #define _VGA2_H
 
-#include <DisplayCore.h>
+#include <Cariad.h>
 
 #ifdef __PIC32MZ__
 #define _TIMER_5_IRQ _TIMER_5_VECTOR
@@ -9,7 +9,7 @@
 #define _CORE_TIMER_IRQ _CORE_TIMER_VECTOR
 #endif
 
-class VGA2 : public DisplayCore {
+class VGA2 : public Cariad {
     public:
         static const int Width = 320;
         static const int Height = 240;

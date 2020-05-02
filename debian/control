@@ -1,17 +1,18 @@
-Source: libdisplaycore-driver-vga2
+Source: libcariad-driver-vga2
 Section: main
 Priority: extra
 Maintainer: Matt Jenkins <matt@majenko.co.uk>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 
-Package: libdisplaycore-driver-vga2
+Package: libcariad-driver-vga2
+Replaces: libdisplaycore-driver-vga2
 Section: main
 Architecture: all
-XBSC-Group: DisplayCore
+XBSC-Group: Cariad
 XBSC-Subgroup: Drivers
 XBSC-Subsubgroup: Virtual
-Depends: libdisplaycore-core
+Depends: libcariad-core
 Provides: VGA2.h
 Description: VGA2
  Experimental colour VGA driver.
